@@ -52,16 +52,6 @@ services:
       start_period: 40s
     networks:
       - shule-network
-    labels:
-      # Dokploy labels
-      - "com.dokploy.application=true"
-      - "com.dokploy.service=shule"
-      # Traefik labels (auto-routing)
-      - "traefik.enable=true"
-      - "traefik.http.routers.shule.rule=Host(`${DOMAIN:-localhost}`)"
-      - "traefik.http.services.shule.loadbalancer.server.port=3000"
-      - "traefik.http.routers.shule.entrypoints=websecure"
-      - "traefik.http.routers.shule.tls.certresolver=letsencrypt"
 
 volumes:
   postgres_data:
