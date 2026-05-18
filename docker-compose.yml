@@ -4,11 +4,6 @@ services:
     container_name: shule-db
     restart: unless-stopped
     profiles: ["local", "full"]
-    ports:
-      - target: 5432
-        published: 5432
-        protocol: tcp
-        mode: host
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -32,11 +27,6 @@ services:
     image: shule:latest
     container_name: shule-app
     restart: unless-stopped
-    ports:
-      - target: 3000
-        published: 3000
-        protocol: tcp
-        mode: host
     environment:
       NODE_ENV: production
       DATABASE_URL: ${DATABASE_URL}
