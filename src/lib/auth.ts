@@ -4,6 +4,8 @@ import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+  trustHost: true,
   providers: [
     Credentials({
       name: "credentials",
@@ -22,6 +24,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const user = await prisma.user.findUnique({
           where: { email },
           include: { staff: true },
+        }).catch((error) => {
+          console.error("[auth] Database lookup failed:", error);
+          return null;
         });
 
         if (!user || !user.isActive) return null;
