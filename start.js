@@ -1,4 +1,5 @@
 const http = require("http");
+const path = require("path");
 const { spawnSync } = require("child_process");
 
 // ---- helpers ----
@@ -42,11 +43,14 @@ async function deployDatabase() {
     return;
   }
 
-  await run("npx", ["prisma", "db", "push", "--accept-data-loss"], {
+  const prismaCli = path.join(__dirname, "node_modules", "prisma", "build", "index.js");
+  const tsxCli = path.join(__dirname, "node_modules", "tsx", "dist", "cli.cjs");
+
+  await run(process.execPath, [prismaCli, "db", "push", "--accept-data-loss"], {
     attempts: 10,
     retryDelayMs: 5000,
   });
-  await run("npx", ["prisma", "db", "seed"]);
+  await run(process.execPath, [tsxCli, path.join(__dirname, "prisma", "seed.ts")]);
 }
 
 // ---- env check ----
