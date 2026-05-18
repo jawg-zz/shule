@@ -5,13 +5,8 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 RUN apk add --no-cache openssl
 
-COPY package.json package-lock.json* ./
-RUN \
-  if [ -f package-lock.json ]; then \
-    npm ci --legacy-peer-deps --no-audit --no-fund --prefer-offline; \
-  else \
-    npm install --legacy-peer-deps --no-audit --no-fund --prefer-offline; \
-  fi
+COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps --no-audit --no-fund --prefer-offline
 
 # Stage 2: Build the app
 FROM node:20-alpine AS builder
