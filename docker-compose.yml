@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: shule-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: shule
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shule-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/shule?schema=public"
+      NEXTAUTH_SECRET: "change-this-to-a-long-random-secret-in-production"
+      NEXTAUTH_URL: "http://localhost:3000"
+      MPESA_ENVIRONMENT: sandbox
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: ["/app/docker-entrypoint.sh"]
+
+volumes:
+  postgres_data:
