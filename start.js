@@ -1,9 +1,53 @@
 const http = require("http");
-const path = require("path");
+const { spawnSync } = require("child_process");
 
 // ---- helpers ----
 const ts = () => new Date().toISOString();
 const log = (msg) => console.log(`[shule ${ts()}] ${msg}`);
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function run(command, args, options = {}) {
+  const attempts = options.attempts || 1;
+  const retryDelayMs = options.retryDelayMs || 3000;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    log(`Running ${command} ${args.join(" ")}${attempts > 1 ? ` (attempt ${attempt}/${attempts})` : ""}`);
+    const result = spawnSync(command, args, {
+      cwd: __dirname,
+      env: process.env,
+      stdio: "inherit",
+      shell: process.platform === "win32",
+    });
+
+    if (result.status === 0) return;
+
+    if (attempt < attempts) {
+      log(`${command} ${args.join(" ")} failed; retrying in ${retryDelayMs / 1000}s`);
+      await sleep(retryDelayMs);
+      continue;
+    }
+
+    throw new Error(`${command} ${args.join(" ")} failed with exit code ${result.status}`);
+  }
+}
+
+async function deployDatabase() {
+  if (process.env.SKIP_DB_DEPLOY === "true") {
+    log("Skipping database deploy because SKIP_DB_DEPLOY=true");
+    return;
+  }
+
+  if (!process.env.DATABASE_URL) {
+    log("Skipping database deploy because DATABASE_URL is missing");
+    return;
+  }
+
+  await run("npx", ["prisma", "db", "push", "--accept-data-loss"], {
+    attempts: 10,
+    retryDelayMs: 5000,
+  });
+  await run("npx", ["prisma", "db", "seed"]);
+}
 
 // ---- env check ----
 log(`NODE_ENV=${process.env.NODE_ENV}`);
@@ -28,8 +72,16 @@ http.createServer = function (handler, ...args) {
   return origCreateServer.call(http, wrapped, ...args);
 };
 
-// ---- start server ----
-process.env.NODE_ENV = "production";
-process.chdir(__dirname);
+async function main() {
+  // ---- start server ----
+  process.env.NODE_ENV = "production";
+  process.chdir(__dirname);
 
-require("./server.js");
+  await deployDatabase();
+  require("./server.js");
+}
+
+main().catch((error) => {
+  console.error("[shule] Startup failed:", error);
+  process.exit(1);
+});

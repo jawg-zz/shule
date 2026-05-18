@@ -49,6 +49,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/esbuild ./node_modul
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/get-tsconfig ./node_modules/get-tsconfig
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/resolve-pkg-maps ./node_modules/resolve-pkg-maps
 
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/start.js ./start.js
 
 USER nextjs
