@@ -49,10 +49,12 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/esbuild ./node_modul
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/get-tsconfig ./node_modules/get-tsconfig
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/resolve-pkg-maps ./node_modules/resolve-pkg-maps
 
+COPY --from=builder --chown=nextjs:nodejs /app/start.js ./start.js
+
 USER nextjs
 
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-CMD ["node", "server.js"]
+CMD ["node", "start.js"]
