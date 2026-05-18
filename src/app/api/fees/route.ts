@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     });
 
     const summary = invoices.reduce(
-      (acc, inv) => ({
+      (acc: { totalBilled: number; totalPaid: number; totalBalance: number }, inv: any) => ({
         totalBilled: acc.totalBilled + inv.totalAmount,
         totalPaid: acc.totalPaid + inv.paidAmount,
         totalBalance: acc.totalBalance + inv.balance,

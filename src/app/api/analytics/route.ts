@@ -19,7 +19,7 @@ export async function GET() {
     });
 
     const levelCounts: Record<string, number> = {};
-    studentsByLevel.forEach((e) => {
+    studentsByLevel.forEach((e: { class: { level: string | null } }) => {
       const key = `${e.class.level}`;
       levelCounts[key] = (levelCounts[key] || 0) + 1;
     });
