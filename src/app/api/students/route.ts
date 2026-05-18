@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
+import { getDefaultSchoolId } from "@/lib/defaults";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const classId = searchParams.get("classId");
   const search = searchParams.get("search");
 
-  const where: any = { isActive: true };
+  const where: Prisma.StudentWhereInput = { isActive: true };
   if (classId) {
     where.enrollments = { some: { classId, isCurrent: true } };
   }
@@ -34,6 +36,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { firstName, lastName, otherNames, gender, dateOfBirth, upi, nemisNumber, religion, phone, email, address, previousSchool, classId, parentName, parentPhone, parentEmail } = body;
+    const schoolId = await getDefaultSchoolId();
 
     const count = await prisma.student.count();
     const admissionNo = `${new Date().getFullYear().toString().slice(-2)}${String(count + 1).padStart(4, "0")}`;
@@ -53,7 +56,7 @@ export async function POST(request: Request) {
         email,
         address,
         previousSchool,
-        schoolId: "default-school-id",
+        schoolId,
         enrollments: classId ? {
           create: { classId, isCurrent: true },
         } : undefined,
@@ -81,6 +84,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(student, { status: 201 });
   } catch (error) {
+    console.error("[students] Failed to create student:", error);
     return NextResponse.json({ error: "Failed to create student" }, { status: 500 });
   }
 }

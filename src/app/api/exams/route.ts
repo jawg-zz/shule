@@ -1,6 +1,28 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { computeKCSE } from "@/lib/kcse/grades";
+import type { Prisma } from "@prisma/client";
+import { getDefaultSchoolId, getDefaultStaffId } from "@/lib/defaults";
+
+type ExamScoreInput = {
+  studentId: string;
+  subjectId: string;
+  score: number | null;
+};
+
+function scoreToGrade(score: number): { grade: string; points: number } {
+  if (score >= 80) return { grade: "A", points: 12 };
+  if (score >= 75) return { grade: "A-", points: 11 };
+  if (score >= 70) return { grade: "B+", points: 10 };
+  if (score >= 65) return { grade: "B", points: 9 };
+  if (score >= 60) return { grade: "B-", points: 8 };
+  if (score >= 55) return { grade: "C+", points: 7 };
+  if (score >= 50) return { grade: "C", points: 6 };
+  if (score >= 45) return { grade: "C-", points: 5 };
+  if (score >= 40) return { grade: "D+", points: 4 };
+  if (score >= 35) return { grade: "D", points: 3 };
+  if (score >= 30) return { grade: "D-", points: 2 };
+  return { grade: "E", points: 1 };
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -21,7 +43,7 @@ export async function GET(request: Request) {
     return NextResponse.json(exam);
   }
 
-  const where: any = {};
+  const where: Prisma.ExamWhereInput = {};
   if (classId) where.classId = classId;
 
   const exams = await prisma.exam.findMany({
@@ -40,7 +62,17 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, type, classId, termId, startDate, endDate, scores } = body;
+    const { name, type, classId, termId, startDate, endDate, scores } = body as {
+      name: string;
+      type: string;
+      classId: string;
+      termId: string;
+      startDate: string;
+      endDate: string;
+      scores?: ExamScoreInput[];
+    };
+    const schoolId = await getDefaultSchoolId();
+    const createdById = await getDefaultStaffId(schoolId);
 
     const exam = await prisma.exam.create({
       data: {
@@ -50,25 +82,11 @@ export async function POST(request: Request) {
         termId,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        createdById: "default-staff-id",
+        createdById,
         results: scores ? {
-          create: scores.map((s: any) => {
+          create: scores.map((s) => {
             const { grade, points } = s.score != null
-              ? ((g) => g)((() => {
-                  const score = s.score;
-                  if (score >= 80) return { grade: "A", points: 12 };
-                  if (score >= 75) return { grade: "A-", points: 11 };
-                  if (score >= 70) return { grade: "B+", points: 10 };
-                  if (score >= 65) return { grade: "B", points: 9 };
-                  if (score >= 60) return { grade: "B-", points: 8 };
-                  if (score >= 55) return { grade: "C+", points: 7 };
-                  if (score >= 50) return { grade: "C", points: 6 };
-                  if (score >= 45) return { grade: "C-", points: 5 };
-                  if (score >= 40) return { grade: "D+", points: 4 };
-                  if (score >= 35) return { grade: "D", points: 3 };
-                  if (score >= 30) return { grade: "D-", points: 2 };
-                  return { grade: "E", points: 1 };
-                })())
+              ? scoreToGrade(s.score)
               : { grade: null, points: null };
 
             return {
@@ -85,6 +103,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(exam, { status: 201 });
   } catch (error) {
+    console.error("[exams] Failed to create exam:", error);
     return NextResponse.json({ error: "Failed to create exam" }, { status: 500 });
   }
 }

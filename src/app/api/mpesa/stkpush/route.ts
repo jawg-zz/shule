@@ -38,7 +38,8 @@ export async function POST(request: NextRequest) {
       success: false,
       error: result.ResponseDescription || "Failed to send STK Push",
     }, { status: 400 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "M-Pesa request failed" }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "M-Pesa request failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

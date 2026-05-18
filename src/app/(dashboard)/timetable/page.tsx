@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -71,7 +70,7 @@ export default function TimetablePage() {
               {periods.map((period, pIdx) => (
                 <TableRow key={period}>
                   <TableCell className="font-medium text-xs">{period}</TableCell>
-                  {days.map((day, dIdx) => {
+                  {days.map((day) => {
                     const slot = timetable[`${day}-${pIdx}`];
                     return (
                       <TableCell key={day} className="text-center p-1">

@@ -1,5 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
+import { getDefaultSchoolId } from "@/lib/defaults";
+
+type InvoiceSummary = {
+  totalBilled: number;
+  totalPaid: number;
+  totalBalance: number;
+};
+
+type FeeComponentInput = {
+  name: string;
+  amount: number;
+  isOptional?: boolean;
+};
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -14,7 +28,7 @@ export async function GET(request: Request) {
     });
 
     const summary = invoices.reduce(
-      (acc: { totalBilled: number; totalPaid: number; totalBalance: number }, inv: any) => ({
+      (acc: InvoiceSummary, inv) => ({
         totalBilled: acc.totalBilled + inv.totalAmount,
         totalPaid: acc.totalPaid + inv.paidAmount,
         totalBalance: acc.totalBalance + inv.balance,
@@ -25,7 +39,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ invoices, summary });
   }
 
-  const where: any = {};
+  const where: Prisma.FeeStructureWhereInput = {};
   if (classId) where.classId = classId;
 
   const feeStructures = await prisma.feeStructure.findMany({
@@ -40,17 +54,24 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, totalAmount, classId, termId, components } = body;
+    const { name, totalAmount, classId, termId, components } = body as {
+      name: string;
+      totalAmount: number;
+      classId?: string;
+      termId?: string;
+      components: FeeComponentInput[];
+    };
+    const schoolId = await getDefaultSchoolId();
 
     const feeStructure = await prisma.feeStructure.create({
       data: {
         name,
         totalAmount,
-        schoolId: "default-school-id",
+        schoolId,
         classId,
         termId,
         components: {
-          create: components.map((c: any) => ({
+          create: components.map((c) => ({
             name: c.name,
             amount: c.amount,
             isOptional: c.isOptional || false,
@@ -62,6 +83,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(feeStructure, { status: 201 });
   } catch (error) {
+    console.error("[fees] Failed to create fee structure:", error);
     return NextResponse.json({ error: "Failed to create fee structure" }, { status: 500 });
   }
 }

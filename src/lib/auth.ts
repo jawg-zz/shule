@@ -11,8 +11,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials: Record<string, string> | undefined) {
-        if (!credentials?.email || !credentials?.password) return null;
+      async authorize(credentials) {
+        if (typeof credentials?.email !== "string" || typeof credentials?.password !== "string") {
+          return null;
+        }
 
         const email = credentials.email;
         const password = credentials.password;
@@ -38,18 +40,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }: { token: any; user: any }) {
+    async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
         token.staffId = user.staffId;
       }
       return token;
     },
-    async session({ session, token }: { session: any; token: any }) {
+    async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub as string;
-        session.user.role = token.role as string;
-        session.user.staffId = token.staffId as string | undefined;
+        session.user.role = typeof token.role === "string" ? token.role : undefined;
+        session.user.staffId = typeof token.staffId === "string" ? token.staffId : undefined;
       }
       return session;
     },

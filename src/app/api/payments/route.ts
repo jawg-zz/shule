@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { PaymentMethod, Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const studentId = searchParams.get("studentId");
   const method = searchParams.get("method");
 
-  const where: any = {};
+  const where: Prisma.PaymentWhereInput = {};
   if (studentId) where.studentId = studentId;
-  if (method) where.method = method;
+  if (method) where.method = method as PaymentMethod;
 
   const payments = await prisma.payment.findMany({
     where,
@@ -60,6 +61,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(payment, { status: 201 });
   } catch (error) {
+    console.error("[payments] Failed to record payment:", error);
     return NextResponse.json({ error: "Failed to record payment" }, { status: 500 });
   }
 }

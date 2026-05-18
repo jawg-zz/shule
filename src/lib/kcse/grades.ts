@@ -13,11 +13,6 @@ export interface KCSEOverallResult {
   bestSevenPoints: number;
 }
 
-const GRADE_POINTS: Record<string, number> = {
-  A: 12, "A-": 11, "B+": 10, B: 9, "B-": 8,
-  "C+": 7, C: 6, "C-": 5, "D+": 4, D: 3, "D-": 2, E: 1,
-};
-
 function scoreToGrade(score: number): { grade: string; points: number } {
   if (score >= 80) return { grade: "A", points: 12 };
   if (score >= 75) return { grade: "A-", points: 11 };
@@ -31,10 +26,6 @@ function scoreToGrade(score: number): { grade: string; points: number } {
   if (score >= 35) return { grade: "D", points: 3 };
   if (score >= 30) return { grade: "D-", points: 2 };
   return { grade: "E", points: 1 };
-}
-
-function gradeToMeanPoint(grade: string): number {
-  return GRADE_POINTS[grade] || 0;
 }
 
 function calculateMeanGrade(totalPoints: number): string {

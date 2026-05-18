@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Receipt, CreditCard, Smartphone, BarChart3 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Receipt, CreditCard, Smartphone } from "lucide-react";
 
 const financeModules = [
   { title: "Fee Structures", description: "Set up fees per class and term", href: "/dashboard/finance/fees", icon: Receipt },

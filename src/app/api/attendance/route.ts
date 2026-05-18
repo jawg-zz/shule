@@ -1,5 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { AttendanceStatus, Prisma } from "@prisma/client";
+import { getDefaultSchoolId, getDefaultStaffId } from "@/lib/defaults";
+
+type AttendanceRecordInput = {
+  studentId: string;
+  date: string;
+  status: AttendanceStatus;
+  remarks?: string | null;
+  recordedById?: string;
+};
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -24,7 +34,7 @@ export async function GET(request: Request) {
     return NextResponse.json(students);
   }
 
-  const where: any = {};
+  const where: Prisma.StudentAttendanceWhereInput = {};
   if (date) where.date = new Date(date);
 
   const records = await prisma.studentAttendance.findMany({
@@ -39,10 +49,12 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { records } = body;
+    const { records } = body as { records: AttendanceRecordInput[] };
+    const schoolId = await getDefaultSchoolId();
+    const fallbackStaffId = await getDefaultStaffId(schoolId);
 
     const created = await prisma.$transaction(
-      records.map((r: any) =>
+      records.map((r) =>
         prisma.studentAttendance.upsert({
           where: {
             studentId_date: { studentId: r.studentId, date: new Date(r.date) },
@@ -53,7 +65,7 @@ export async function POST(request: Request) {
             date: new Date(r.date),
             status: r.status,
             remarks: r.remarks,
-            recordedById: r.recordedById || "default-staff-id",
+            recordedById: r.recordedById || fallbackStaffId,
           },
         })
       )
@@ -61,6 +73,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
+    console.error("[attendance] Failed to save attendance:", error);
     return NextResponse.json({ error: "Failed to save attendance" }, { status: 500 });
   }
 }

@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const callbackData: MpesaCallback = await request.json();
     const { stkCallback } = callbackData.Body;
 
-    const { MerchantRequestID, CheckoutRequestID, ResultCode, ResultDesc, CallbackMetadata } = stkCallback;
+    const { ResultCode, ResultDesc, CallbackMetadata } = stkCallback;
 
     if (ResultCode !== 0) {
       console.error(`M-Pesa payment failed: ${ResultDesc}`);
@@ -19,8 +19,6 @@ export async function POST(request: NextRequest) {
     const amount = Number(getValue("Amount") || 0);
     const mpesaReceipt = String(getValue("MpesaReceiptNumber") || "");
     const phoneNumber = String(getValue("PhoneNumber") || "");
-    const transactionDate = String(getValue("TransactionDate") || "");
-
     console.log(`M-Pesa payment received: ${mpesaReceipt} - KES ${amount} from ${phoneNumber}`);
 
     return NextResponse.json({ ResultCode: 0, ResultDesc: "Success" });

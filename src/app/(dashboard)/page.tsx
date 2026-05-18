@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, BookOpen, DollarSign, GraduationCap, TrendingUp, AlertTriangle } from "lucide-react";
+import { Users, DollarSign, GraduationCap, TrendingUp, AlertTriangle } from "lucide-react";
 
 export default function DashboardPage() {
   return (
@@ -23,7 +23,7 @@ export default function DashboardPage() {
           title="Total Staff"
           value="86"
           change="+3 this term"
-          icon={<GraduatingCap />}
+          icon={<GraduationCap className="h-5 w-5" />}
           trend="up"
         />
         <StatCard
@@ -154,14 +154,6 @@ function StatCard({
         <p className="mt-1 text-xs text-muted-foreground">{change}</p>
       </CardContent>
     </Card>
-  );
-}
-
-function GraduatingCap() {
-  return (
-    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 6.231-4.41 52.36 52.36 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0 2.658-.116A48.62 48.62 0 0 1 12 12.322a48.62 48.62 0 0 1 3.232-.291 50.66 50.66 0 0 0 2.658.116m-15.482 0A20.16 20.16 0 0 1 12 2.08a20.16 20.16 0 0 1 9.742 6.067M4.26 10.147A20.908 20.908 0 0 1 12 4.579a20.908 20.908 0 0 1 7.74 5.568" />
-    </svg>
   );
 }
 

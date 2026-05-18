@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, ClipboardCheck, GraduationCap, Layers, BookA } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ClipboardCheck, GraduationCap, Layers, BookA } from "lucide-react";
 
 const academicModules = [
   { title: "Classes", description: "Manage classes, streams, and class teachers", href: "/dashboard/academics/classes", icon: Layers },

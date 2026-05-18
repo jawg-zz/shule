@@ -1,16 +1,13 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ChevronLeft, Mail, Phone, BookOpen } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ChevronLeft, Mail } from "lucide-react";
 
 export default function StaffProfilePage() {
-  const params = useParams();
   const staff = {
     name: "Dr. Jane Wanjiku",
     staffNo: "STF/2026/0001",
