@@ -29,10 +29,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         });
 
-        if (!user || !user.isActive) return null;
+        if (!user || !user.isActive) {
+          console.warn("[auth] Login rejected: user missing or inactive", { email });
+          return null;
+        }
 
         const isValid = await bcrypt.compare(password, user.passwordHash);
-        if (!isValid) return null;
+        if (!isValid) {
+          console.warn("[auth] Login rejected: invalid password", { email });
+          return null;
+        }
 
         return {
           id: user.id,
