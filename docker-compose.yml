@@ -1,42 +1,82 @@
-version: "3.8"
-
 services:
   postgres:
     image: postgres:16-alpine
     container_name: shule-db
     restart: unless-stopped
+    profiles: ["local", "full"]
     ports:
-      - "5432:5432"
+      - target: 5432
+        published: 5432
+        protocol: tcp
+        mode: host
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: shule
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-shule}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - shule-network
 
   app:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
+    image: shule:latest
     container_name: shule-app
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - target: 3000
+        published: 3000
+        protocol: tcp
+        mode: host
     environment:
       NODE_ENV: production
-      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/shule?schema=public"
-      NEXTAUTH_SECRET: "change-this-to-a-long-random-secret-in-production"
-      NEXTAUTH_URL: "http://localhost:3000"
-      MPESA_ENVIRONMENT: sandbox
+      DATABASE_URL: ${DATABASE_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      MPESA_CONSUMER_KEY: ${MPESA_CONSUMER_KEY:-}
+      MPESA_CONSUMER_SECRET: ${MPESA_CONSUMER_SECRET:-}
+      MPESA_PASSKEY: ${MPESA_PASSKEY:-}
+      MPESA_SHORTCODE: ${MPESA_SHORTCODE:-174379}
+      MPESA_ENVIRONMENT: ${MPESA_ENVIRONMENT:-sandbox}
+    env_file:
+      - path: .env
+        required: false
     depends_on:
       postgres:
         condition: service_healthy
-    entrypoint: ["/app/docker-entrypoint.sh"]
+        required: false
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/analytics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - shule-network
+    labels:
+      # Dokploy labels
+      - "com.dokploy.application=true"
+      - "com.dokploy.service=shule"
+      # Traefik labels (auto-routing)
+      - "traefik.enable=true"
+      - "traefik.http.routers.shule.rule=Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.services.shule.loadbalancer.server.port=3000"
+      - "traefik.http.routers.shule.entrypoints=websecure"
+      - "traefik.http.routers.shule.tls.certresolver=letsencrypt"
 
 volumes:
   postgres_data:
+    driver: local
+
+networks:
+  shule-network:
+    driver: bridge
