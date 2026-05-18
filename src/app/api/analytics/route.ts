@@ -52,6 +52,7 @@ export async function GET() {
       recentPayments,
     });
   } catch (error) {
+    console.error("[analytics] Error:", error instanceof Error ? error.message : error);
     return NextResponse.json({ error: "Analytics unavailable" }, { status: 500 });
   }
 }
