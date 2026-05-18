@@ -49,14 +49,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/esbuild ./node_modul
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/get-tsconfig ./node_modules/get-tsconfig
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/resolve-pkg-maps ./node_modules/resolve-pkg-maps
 
-# Copy entrypoint
-COPY --chown=nextjs:nodejs docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
-
 USER nextjs
 
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["node", "server.js"]
